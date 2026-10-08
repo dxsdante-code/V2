@@ -5,6 +5,20 @@ const crypto = require("crypto");
 const { spawn } = require("child_process");
 
 const app = express();
+
+// Cookies de YouTube (opcional): Secret File /etc/secrets/cookies.txt o variable YT_COOKIES
+const fs_ck = require("fs");
+const os_ck = require("os");
+const path_ck = require("path");
+let COOKIES_FILE = null;
+try {
+  const src = fs_ck.existsSync("/etc/secrets/cookies.txt") ? "/etc/secrets/cookies.txt" : null;
+  const dest = path_ck.join(os_ck.tmpdir(), "yt-cookies.txt");
+  if (src) fs_ck.copyFileSync(src, dest);
+  else if (process.env.YT_COOKIES) fs_ck.writeFileSync(dest, process.env.YT_COOKIES);
+  if (src || process.env.YT_COOKIES) COOKIES_FILE = dest;
+} catch (e) { console.error("No se pudieron cargar cookies:", e.message); }
+const COOKIE_ARGS = COOKIES_FILE ? ["--cookies", COOKIES_FILE] : [];
 const PORT = process.env.PORT || 3000;
 const MAX_CONCURRENT_JOBS = Math.max(1, Number(process.env.MAX_CONCURRENT_JOBS || 2));
 const JOB_TTL_MS = Math.max(60000, Number(process.env.JOB_TTL_MS || 15 * 60 * 1000));
@@ -97,6 +111,7 @@ async function runDownload(job) {
   const outputTemplate = path.join(DOWNLOAD_DIR, `${job.id}-%(title)s.%(ext)s`);
   const args = [
     "--no-playlist",
+    ...COOKIE_ARGS,
     "--no-warnings",
     "--newline",
     "--progress",
@@ -226,6 +241,7 @@ app.post("/api/analyze", async (req, res) => {
     "--dump-single-json",
     "--no-playlist",
     "--skip-download",
+    ...COOKIE_ARGS,
     "--no-warnings",
     url
   ];
