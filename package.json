@@ -1,0 +1,16 @@
+{
+  "name": "youtube-music-downloader-v2",
+  "version": "2.0.0",
+  "description": "YouTube Music Downloader V2 con análisis, cola, progreso y limpieza automática",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  },
+  "engines": {
+    "node": "18.x"
+  }
+}
